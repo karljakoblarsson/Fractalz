@@ -1,9 +1,11 @@
 /* Fractalz by Karl Jakob Larsson */
 
 body {
-   	background-color: #DDFFBB;
+    background-color: #F1EAD6;
 }
 
 canvas {
     background-color: #050505;
+    width: 600px;
+    height: 600px
 }
