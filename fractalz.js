@@ -2,8 +2,8 @@
 var canvas = document.getElementById("a");
 canvas.width *= window.devicePixelRatio;
 canvas.height *= window.devicePixelRatio;
-var c = canvas.getContext("2d");
-c.imageSmoothingEnabled = false;
+var ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
 console.clear();
 
 var rand = function(min, max) {
@@ -47,29 +47,44 @@ function palette(v) {
     else { return [255, 255, v];}
 }
 
-function drawIFS(c){
+Int32Array.prototype.reduce = function(fn) {
+    var ans = this[0];
+    for (var i = 0; i < this.length; i++) {
+        ans = fn(this[i], ans);
+    }
+    return ans;
+};
+
+function drawIFS(ctx){
     var fns = [//function(p) {return [p[0] / 2, p[1] / 2];},
                function(p) {return [(p[0]+1) / 2, p[1] / 2];},
-               //function(p) {return [p[0] / 2, (p[1]+1) / 2];},
+               function(p) {return [p[0] / 2, (p[1]+1) / 2];},
                function(p) {return [p[0] / 3, (p[1]+1) / 3];},
                function(p) {return [Math.sin(p[0]), Math.sin(p[1])];},
                function(p) {return [Math.sin(p[0]*0.7), Math.cos(p[1])*0.7];},
                //function(p) {return [p[0]/2 , Math.log(p[1])/3];},
           ];
+    var fnColors = [0,1,0.4,0.2,0.7];
 
-    var img = c.getImageData(0,0,w,h);
+    var img = ctx.getImageData(0,0,w,h);
     var hist = new Int32Array(w*h);
+    var colors = new Int32Array(w*h);
     var data = img.data;
     
     var p = [rand(space.x_min, space.x_max), rand(space.y_min, space.y_max)];
+    var c = rand(0,1); debugger;
     
     for(var n = 0; n<1e6; n++) {
         fnNo = floor(rand(0, fns.length));
         
         p = fns[fnNo](p);
+        c = (c + fnColors[fnNo]) / 2;
+        debugger
         // 20 because the paper says so. 
         if (n>20) {
-            hist[pixToIndex(coToPix(p))] += 1;
+            var index = pixToIndex(coToPix(p));
+            hist[index] += 1;
+            colors[index] = c*255;
         }
     }
     
@@ -83,10 +98,11 @@ function drawIFS(c){
     
     for (var i = 0; i < hist.length; i++) {
         var val = hist[i]*(kvot);
-        makeColor(data, i*4, palette(val));
+        makeColor(data, i*4, palette(colors[i]));
     }
-        
-    c.putImageData(img,0,0);
+    
+    debugger;  
+    ctx.putImageData(img,0,0);
 }
 
-window.setInterval(drawIFS, 1000, c);
+window.setInterval(drawIFS, 1000, ctx);
