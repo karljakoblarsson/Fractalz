@@ -11,7 +11,7 @@ var rand = function(min, max) {
 };
 var round = Math.round;
 var floor = Math.floor;
-var pwo = Math.pow;
+var pow = Math.pow;
 var w = canvas.width;
 var h = canvas.height;
 
@@ -27,7 +27,7 @@ function makeColor(data, index, rgb) {
 
 function affine(p, a, b, c, d, e, f) {
     var x = p[0];
-    var y ≈ p[1];
+    var y = p[1];
     return [a*x + b*y + c, d*x + e*y + f];
 }
 
@@ -69,15 +69,23 @@ Int32Array.prototype.reduce = function(fn) {
 };
 
 function drawIFS(ctx){
-    var fns = [function(p) {return [p[0] / 2, p[1] / 2];},
+    var fns = [
+        function(x) { return variations[0]( affine(x, 1/2, 0, 0, 0, 1/2, 0) );},
+        function(x) { return variations[0]( affine(x, 1/2, 0, 2, 0, 1/2, 0) );},
+        function(x) { return variations[0]( affine(x, 1/2, 0, 0, 0, 1/2, 2) );},
+        function(x) { return variations[0]( affine(x, 1/3, 0, 0, 0, 1/3, 3) );},
+        function(x) { return variations[2]( affine(x, 1, 0, 0, 0, 1, 0) );},
+    ];
+    var fnColors = [1,0,0,0,0.6,0];
+    
+/* var fns = [function(p) {return [p[0] / 2, p[1] / 2];},
                function(p) {return [(p[0]+1) / 2, p[1] / 2];},
                function(p) {return [p[0] / 2, (p[1]+1) / 2];},
                function(p) {return [p[0] / 3, (p[1]+1) / 3];},
                function(p) {return [Math.sin(p[0]), Math.sin(p[1])];},
                function(p) {return [Math.sin(p[0]*0.7), Math.cos(p[1])*0.7];},
-               function(p) {var s = 1/Math.sqrt(p[0]*p[0] + p[1]*p[1]); return [p[0]*s , p[1]*s];},
-          ];
-    var fnColors = [1,0,0,0,0,0.6,0];
+               function(p) {var s = 1/Math.sqrt(p[0]*p[0] + p[1]*p[1]); return [p[0]
+   ];*/
 
     var img = ctx.getImageData(0,0,w,h);
     var hist = new Int32Array(w*h);
@@ -87,7 +95,8 @@ function drawIFS(ctx){
     var p = [rand(space.x_min, space.x_max), rand(space.y_min, space.y_max)];
     var c = rand(0,1);
     
-    for(var n = 0; n<1e6; n++) {
+    var iterations = 1e7;
+    for(var n = 0; n<iterations; n++) {
         fnNo = floor(rand(0, fns.length));
         
         // no affine transform yet.
