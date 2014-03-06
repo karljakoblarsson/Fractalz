@@ -14,7 +14,6 @@ var floor = Math.floor;
 var pow = Math.pow;
 var w = canvas.width;
 var h = canvas.height;
-
 function x(p) { return p[0]; };
 function y(p) { return p[1]; };
 
@@ -77,15 +76,6 @@ function drawIFS(ctx){
         function(x) { return variations[2]( affine(x, 1, 0, 0, 0, 1, 0) );},
     ];
     var fnColors = [1,0,0,0,0.6,0];
-    
-/* var fns = [function(p) {return [p[0] / 2, p[1] / 2];},
-               function(p) {return [(p[0]+1) / 2, p[1] / 2];},
-               function(p) {return [p[0] / 2, (p[1]+1) / 2];},
-               function(p) {return [p[0] / 3, (p[1]+1) / 3];},
-               function(p) {return [Math.sin(p[0]), Math.sin(p[1])];},
-               function(p) {return [Math.sin(p[0]*0.7), Math.cos(p[1])*0.7];},
-               function(p) {var s = 1/Math.sqrt(p[0]*p[0] + p[1]*p[1]); return [p[0]
-   ];*/
 
     var img = ctx.getImageData(0,0,w,h);
     var hist = new Int32Array(w*h);
@@ -95,11 +85,10 @@ function drawIFS(ctx){
     var p = [rand(space.x_min, space.x_max), rand(space.y_min, space.y_max)];
     var c = rand(0,1);
     
-    var iterations = 1e7;
+    var iterations = 1e6;
     for(var n = 0; n<iterations; n++) {
         fnNo = floor(rand(0, fns.length));
         
-        // no affine transform yet.
         p = fns[fnNo](p);
         c = (c + fnColors[fnNo]) / 2;
         
