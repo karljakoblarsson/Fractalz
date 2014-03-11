@@ -68,6 +68,8 @@ Int32Array.prototype.reduce = function(fn) {
 };
 
 function drawIFS(ctx){
+    // I desperatly need a new datastruct for the xforms.
+    // but first, colors!
     var fns = [
         function(x) { return variations[0]( affine(x, 1/2, 0, 0, 0, 1/2, 0) );},
         function(x) { return variations[0]( affine(x, 1/2, 0, 2, 0, 1/2, 0) );},
@@ -76,41 +78,42 @@ function drawIFS(ctx){
         function(x) { return variations[2]( affine(x, 1, 0, 0, 0, 1, 0) );},
     ];
     var fnColors = [1,0,0,0,0.6,0];
+    // functions should also have a weight.
 
     var img = ctx.getImageData(0,0,w,h);
     var hist = new Int32Array(w*h);
     var colors = new Int32Array(w*h);
     var data = img.data;
-    
+
     var p = [rand(space.x_min, space.x_max), rand(space.y_min, space.y_max)];
     var c = rand(0,1);
-    
+
     var iterations = 1e6;
     for(var n = 0; n<iterations; n++) {
         fnNo = floor(rand(0, fns.length));
-        
+
         p = fns[fnNo](p);
         c = (c + fnColors[fnNo]) / 2;
-        
+
         // no final or post transforms yet.
-        
-        // 20 because the paper says so. 
+
+        // 20 because the paper says so.
         if (n>20) {
             var index = pixToIndex(coToPix(p));
             hist[index] += 1;
             colors[index] = c*255;
         }
     }
-    
+
     var max = hist.reduce(Math.max);
-    
+
     var kvot = 255/max;
-    
+
     for (var i = 0; i < hist.length; i++) {
         var val = hist[i]*(kvot);
         makeColor(data, i*4, palette(colors[i]));
     }
-    
+
     // The image will be plotted point-by-point in the loop for complex flames.
     ctx.putImageData(img,0,0);
 }
@@ -129,6 +132,13 @@ var variations = {
     2: function(p) {var s = 1/r2(p); return [ x(p)*s , y(p)*s ];}, // spherical
   };
 
+
+/* A function is:
+ * p = affine(p,abcdef)
+ * p = v1*var1(p) + ... + vN*varN(p)
+ * p = post(p);
+ * A function has linear combination of one or more variations.
+ */
 
 // Plot it!
 // The image should be plotted point-by-point in the loop for complex flames.
