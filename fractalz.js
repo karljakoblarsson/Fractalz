@@ -1,3 +1,19 @@
+/* Fractal flame in javascript + canvas.
+ * Karl Jakob Larsson 2014
+ * MIT License
+ */
+
+/* TODO:
+ * Pallette loading
+ * Correct colors
+ *   - Channel separated color parameter
+ *   - Gamma adjustment
+ *   - Vibrancy
+ * Final and Post transforms
+ * Blur
+ * 
+ */
+
 var canvas = document.getElementById("a");
 canvas.width *= window.devicePixelRatio; // high-dpi adjustment
 canvas.height *= window.devicePixelRatio;
@@ -41,23 +57,25 @@ var space = {x_min: 0,
 
 // Transform from coordinate-space to screen-space.
 function coToPix(p) {
-           var x_len = (space.x_max - space.x_min);
-           var y_len = (space.x_max - space.x_min);
+    var x_len = (space.x_max - space.x_min);
+    var y_len = (space.x_max - space.x_min);
 
-           return [round((p[0] - space.x_min)*w / x_len), 
-                   round(h - (p[1] - space.y_min)*h / y_len)];
+    return [round((p[0] - space.x_min)*w / x_len), 
+            round(h - (p[1] - space.y_min)*h / y_len)];
 }
 
 function pixToIndex(p) {
     return (p[1] * w + p[0]);
 }
 
-function palette(v) {
+var palette = palette1;
+
+/*function palette(v) {
     if (v < 2) {return [0,0,0];}
     else if (v < 100) {return [v/2,v*4,v*2];}
     else if (v < 190) {return [v*8,v,255-v];}
     else { return [255, 255, v];}
-}
+}*/
 
 Int32Array.prototype.reduce = function(fn) {
     var ans = this[0];
@@ -142,5 +160,5 @@ var variations = {
 
 // Plot it!
 // The image should be plotted point-by-point in the loop for complex flames.
-// But it's make dev faster to have it continuously re-render.
+// But it make dev faster to have it continuously re-render.
 window.setInterval(drawIFS, 1000, ctx);
