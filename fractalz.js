@@ -4,13 +4,12 @@
  */
 
 /* TODO:
- * Correct colors
- *   - Channel separated color parameter
+ * Adjust colors
  *   - Gamma adjustment
  *   - Vibrancy
  * Final and Post transforms
  * Blur
- * 
+ * flame loading
  */
 
 var canvas = document.getElementById("a");
@@ -32,11 +31,19 @@ var h = canvas.height;
 function x(p) { return p[0]; };
 function y(p) { return p[1]; };
 
-function makeColor(data, index, rgb) {
-    data[index] = rgb[0];
-    data[index+1] = rgb[1];
-    data[index+2] = rgb[2];
-    data[index+3] = 255;
+function makeColor(data, index, rgba) {
+    data[index] = rgba[0];
+    data[index+1] = rgba[1];
+    data[index+2] = rgba[2];
+    data[index+3] = rgba[4] || 1;
+}
+
+function addToHist(data, index, rgba) {
+    index *= 4;
+    data[index] += rgba[0];
+    data[index+1] += rgba[1];
+    data[index+2] += rgba[2];
+    data[index+3] += rgba[4] || 1;
 }
 
 function affine(p, a, b, c, d, e, f) {
@@ -98,8 +105,7 @@ function drawIFS(ctx){
     // functions should also have a weight.
 
     var img = ctx.getImageData(0,0,w,h);
-    var hist = new Int32Array(w*h);
-    var colors = new Int32Array(w*h);
+    var hist = new Int32Array(w*h*4);
     var data = img.data;
 
     var p = [rand(space.x_min, space.x_max), rand(space.y_min, space.y_max)];
@@ -117,18 +123,22 @@ function drawIFS(ctx){
         // 20 because the paper says so.
         if (n>20) {
             var index = pixToIndex(coToPix(p));
-            hist[index] += 1;
-            colors[index] = c*255;
+            var color = palette(c);
+            addToHist(hist, index, color);
         }
     }
+    
+    var gamma = 3;
+    
+    for (var i = 0; i < hist.length; i += 4) {
+        var alpha = hist[i+3] || 1 ;
+        var factor = Math.log(alpha) / alpha;
 
-    var max = hist.reduce(Math.max);
+        data[i] = hist[i] * factor;
+        data[i+1] = hist[i+1] * factor;
+        data[i+2] = hist[i+2] * factor;
+        data[i+3] = 255;
 
-    var kvot = 255/max;
-
-    for (var i = 0; i < hist.length; i++) {
-        var val = hist[i]*(kvot);
-        makeColor(data, i*4, palette(colors[i]));
     }
 
     // The image will be plotted point-by-point in the loop for complex flames.
