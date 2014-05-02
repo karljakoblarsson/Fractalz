@@ -4,7 +4,6 @@
  */
 
 /* TODO:
- * Pallette loading
  * Correct colors
  *   - Channel separated color parameter
  *   - Gamma adjustment
