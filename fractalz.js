@@ -4,12 +4,14 @@
  */
 
 /* TODO:
+ * Refractor drawIFS() into smaller fns. To be able to profile.
  * Adjust colors
  *   - Gamma adjustment
  *   - Vibrancy
  * Final and Post transforms
- * Blur
- * flame loading
+ * Multiple weighted flames
+ * Multistage computation and display.
+ * Flame loading
  */
 
 var canvas = document.getElementById("a");
@@ -17,7 +19,7 @@ canvas.width *= window.devicePixelRatio; // high-dpi adjustment
 canvas.height *= window.devicePixelRatio;
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false; // The algorithm takes care of it.
-console.clear(); // makes dev in chrome devtools better.
+
 
 // Convinience
 var rand = function(min, max) {
@@ -30,6 +32,17 @@ var w = canvas.width;
 var h = canvas.height;
 function x(p) { return p[0]; };
 function y(p) { return p[1]; };
+
+function sum(vec) {
+    return vec.reduce(function(a,b) {return a+b;});
+}
+function norm(vec) {
+    return Math.sqrt(sum(vec));
+}
+
+function normalize(vec) {
+    return vec.map(function(elem) {return elem / sum(vec); });
+}
 
 function makeColor(data, index, rgba) {
     data[index] = rgba[0];
@@ -55,8 +68,8 @@ function affine(p, a, b, c, d, e, f) {
 
 // Define the coordinate-space of the display.
 // The current fractal live in 0<x|y<1
-var space = {x_min: 0,
-             y_min: 0,
+var space = {x_min: -1,
+             y_min: -1,
              x_max: 1,
              y_max: 1
             };
@@ -96,12 +109,12 @@ function drawIFS(ctx){
     // but first, colors!
     var fns = [
         function(x) { return variations[0]( affine(x, 1/2, 0, 0, 0, 1/2, 0) );},
-        function(x) { return variations[0]( affine(x, 1/2, 0, 2, 0, 1/2, 0) );},
-        function(x) { return variations[0]( affine(x, 1/2, 0, 0, 0, 1/2, 2) );},
-        function(x) { return variations[0]( affine(x, 1/3, 0, 0, 0, 1/3, 3) );},
+        function(x) { return variations[1]( affine(x, 1/2, 0, 2, 0, 1/2, 0) );},
+        function(x) { return variations[2]( affine(x, 1/2, 1/5, 0, Math.sqrt(2), 1/2, 2) );},
+        function(x) { return variations[1]( affine(x, 1/3, 0, 3, 0, 1/3, 3) );},
         function(x) { return variations[2]( affine(x, 1, 0, 0, 0, 1, 0) );},
     ];
-    var fnColors = [1,0,0,0,0.6,0];
+    var fnColors = [1,1,0.8,0.3,0.1,0.1];
     // functions should also have a weight.
 
     var img = ctx.getImageData(0,0,w,h);
