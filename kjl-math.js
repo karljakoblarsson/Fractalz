@@ -14,6 +14,7 @@ var rand = function(min, max) {
 var round = Math.round;
 var floor = Math.floor;
 var pow = Math.pow;
+var log = Math.log;
 function x(p) { return p[0]; };
 function y(p) { return p[1]; };
 
@@ -36,7 +37,7 @@ function affine(p, a, b, c, d, e, f) {
 
 Int32Array.prototype.reduce = function(fn) {
     var ans = this[0];
-    for (var i = 0; i < this.length; i++) {
+    for (var i = 1; i < this.length; i++) {
         ans = fn(this[i], ans);
     }
     return ans;
