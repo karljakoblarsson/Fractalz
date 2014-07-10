@@ -81,9 +81,8 @@ var fnColors = [1,1,0.8,0.3,0.1,0.1];
 // functions should also have a weight.
 
 var palette = palette1;
-palette = function(c) {return [c*255, c*100, r*200]}
+palette = function(c) {return [c*255, c*100, c*75]}
 
-// var img = ctx.createImageData(w,h);
 var hist = []; //new Int32Array(w*h*4);
 for(var i = 0; i < w*h*4; i += 1){
     hist[i] = 0;
@@ -112,11 +111,14 @@ function logDisplay() {
 }
 
 function gammaAdjust(img, gamma, vib) {
-    var factor = 1/gamma;
+    var applyGamma = function(v) {
+        var exponent = 1 / gamma;
+        return pow(v / 255, exponent) * 255;
+    }
     for (var i = 0; i < w*h*4 - 4; i += 4) {
-        img.data[i] = pow(img.data[i], factor);
-        img.data[i+1] = pow(img.data[i+1], factor);
-        img.data[i+2] = pow(img.data[i+2], factor);
+        img.data[i] = applyGamma(img.data[i]);
+        img.data[i+1] = applyGamma(img.data[i+1]);
+        img.data[i+2] = applyGamma(img.data[i+2]);
     }
     return img;
 }
@@ -153,9 +155,9 @@ function drawIFS(ctx){
 
     var img = logDisplay();
     
-    var gamma = 3;
+    var gamma = 4;
     var vib = 1;
-    //img = gammaAdjust(img, gamma, vib);
+    img = gammaAdjust(img, gamma, vib);
 
     // The image will be plotted point-by-point in the loop for complex flames.
     //ctx.clearRect(0,0,w,h);
