@@ -4,7 +4,7 @@
  */
 
 /* TODO:
- * Refractor drawIFS() into smaller fns. To be able to profile.
+ * BUG in logDisplay()
  * Adjust colors
  *   - Vibrancy
  * Final and Post transforms
@@ -81,7 +81,7 @@ function logDisplay(histogram) {
     
     for (var i = 0; i < w*h*4 - 4; i += 4) {
         var alpha = hist[i+3] || 1 ;
-        var factor = log(alpha) / log(max_alpha) / alpha * 3;
+        var factor = log(alpha) / log(max_alpha) / alpha * 3; // random 3 :P
 
         img.data[i] = histogram[i] * factor;
         img.data[i+1] = histogram[i+1] * factor;
@@ -97,12 +97,34 @@ function gammaAdjust(img, gamma, vib) {
         var exponent = 1 / gamma;
         return pow(v / 255, exponent) * 255;
     }
+    
+    //loopOverPix(img, function(r ,g, b, a) {return [applyGamma(r),applyGamma(g),applyGamma(b),255]});
+    
     for (var i = 0; i < w*h*4 - 4; i += 4) {
         img.data[i] = applyGamma(img.data[i]);
         img.data[i+1] = applyGamma(img.data[i+1]);
         img.data[i+2] = applyGamma(img.data[i+2]);
     }
     return img;
+}
+
+var loopOverPix = function(img, fn) {
+    var r, g, b, a;
+    var out
+    for (var i = 0; i < img.width * img.height * 4 - 4; i += 4) {
+        r = img.data[i];
+        g = img.data[i+1];
+        b = img.data[i+2];
+        a = img.data[i+3];
+        
+        out = fn(r, g, b, a);
+        
+        img.data[i] = out[i];
+        img.data[i+1] = out[i+1];
+        img.data[i+2] = out[i+2];
+        img.data[i+3] = out[i+3];
+        
+    }
 }
 
 ctx.fillStyle = "#FFF";
@@ -151,8 +173,9 @@ var display = function(ctx, histogram) {
     ctx.putImageData(img,0,0);
 }
 
-var drawIFS = function(ctx) {
-    hist = iterateIFS(hist, 1e6);
+var drawIFS = function(ctx, iterations) {
+    iterations = iterations | 1e6;
+    hist = iterateIFS(hist, iterations);
     display(ctx, hist);
 }
 
